@@ -32,15 +32,16 @@ namespace ReflectTest.Business
             // 不过有一点，就是必须在属性里面添加[PersonCheck]标签，但是可以不设置表情里面的字段.因为没有的.GetCustomAttributes()返回为null.指向first会报错.
             // PersonCheckAttribute attribute = propertyInfo.GetCustomAttributes().First() as PersonCheckAttribute; 
             string errorMsg = string.Empty;
-
-            PersonCheckAttribute attribute = propertyInfo.GetCustomAttribute(typeof(PersonCheckAttribute)) as PersonCheckAttribute;
+            //.net 4.5没有这个方法
+            //PersonCheckAttribute attribute = propertyInfo.GetCustomAttribute(typeof(PersonCheckAttribute)) as PersonCheckAttribute;
+            PersonCheckAttribute attribute = propertyInfo.GetCustomAttributes(typeof(PersonCheckAttribute), false).First() as PersonCheckAttribute;
             //以下的if语句是判断标签里面的设置，设置了什么就执行什么数据校验
 
             if (attribute != null)
             {
                 if (attribute.CheckEmpty)
                 {
-                    string obj = propertyInfo.GetValue(person) as string;
+                    string obj = propertyInfo.GetValue(person,null) as string;
                     if (string.IsNullOrEmpty(obj))
                     {
                         errorMsg += Environment.NewLine + string.Format("{0} 不能为空", propertyInfo.Name);
@@ -49,7 +50,9 @@ namespace ReflectTest.Business
 
                 if (attribute.CheckMaxLength)
                 {
-                    string obj = propertyInfo.GetValue(person) as string;
+                    //没有一个参数的GetValue匹配--下同
+                    //string obj = propertyInfo.GetValue(person) as string;
+                    string obj = propertyInfo.GetValue(person,null) as string;
                     if (obj != null && obj.Length > attribute.MaxLength)
                     {
                         errorMsg += Environment.NewLine + string.Format("{0} 不能超过最大程度{1}", propertyInfo.Name, attribute.MaxLength);
@@ -59,7 +62,7 @@ namespace ReflectTest.Business
                 // 对于判断数字邮箱都可以通过正则表达式
                 if (attribute.CheckRegex)
                 {
-                    string obj = propertyInfo.GetValue(person) as string;
+                    string obj = propertyInfo.GetValue(person,null) as string;
                     Regex regex = new Regex(attribute.RegexStr);
                     if (obj != null && !regex.IsMatch(obj))
                     {
